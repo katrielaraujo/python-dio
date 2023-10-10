@@ -15,7 +15,6 @@ def create_account(user, accounts):
         "agency": "0001",
         "number_account": len(accounts) + 1,
         "balance": 0.0,
-        "statement": []
     }
     accounts.append(account)
 
@@ -24,7 +23,7 @@ def add_user(user, users):
 
 def print_statement(statement):
     for state in statement:
-        print(state)
+        print(state.replace('.',','))
 
 def deposit(value, statement, account):
     if value > 0:
@@ -37,10 +36,10 @@ def validate_withdrawal(value, number_drawal, account):
     LIMIT = 500.0
     DRAWAL_LIMIT = 3
 
-    insufficient = value > account["balance"]
-    valid = value < 0
-    withdrawal_limit = value > LIMIT
-    limit_drawal = number_drawal >= DRAWAL_LIMIT
+    insufficient = value < account["balance"]
+    valid = value > 0
+    withdrawal_limit = value <= LIMIT
+    limit_drawal = number_drawal <= DRAWAL_LIMIT
 
     if insufficient:
         print("Saldo insuficiente")
@@ -77,6 +76,7 @@ def main():
     users = []
     accounts = []
     number_drawal = 0
+    statement = []
     account = None
 
     while True:
@@ -90,12 +90,12 @@ def main():
             account = find_account(user, accounts)
         elif opcao == "d" and account is not None:
             value = float(input("Valor do depósito: "))
-            deposit(value, account["statement"], account)
+            deposit(value,statement, account)
         elif opcao == "s" and account is not None:
             value = float(input("Valor do saque: "))
-            withdrawal(value, account["statement"], number_drawal, account)
+            withdrawal(value,statement, number_drawal, account)
         elif opcao == "e" and account is not None:
-            print_statement(account["statement"])
+            print_statement(statement)
         elif opcao == "q":
             break
         else:

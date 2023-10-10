@@ -1,64 +1,105 @@
-BASE_VALUE = 0.0
-LIMIT_VALUE = 500.0
+import datetime
 
-user = "Gui"
-balance = 1000.0
-number_drawals = 0
-withdrawal_amount = 0.0
-DAILY_LIMIT = 3
-statement_string = "Bank statement: "
+def create_user():
+    user = {
+        "name": input("Nome: "),
+        "birthday": datetime.datetime.strptime(input("Data de Nascimento (dd-mm-yyyy): "), '%d-%m-%Y').date(),
+        "CPF": input("CPF: "),
+        "address": input("Endereco: ")
+    }
+    return user
 
-def statement():
-    print(f"{statement_string} \nBALANCE: R$ {balance}".replace(".",","))
+def create_account(user, accounts):
+    account = {
+        "owner": user,
+        "agency": "0001",
+        "number_account": len(accounts) + 1,
+        "balance": 0.0,
+        "statement": []
+    }
+    accounts.append(account)
 
-def deposit(value):
-    global statement_string,balance
+def add_user(user, users):
+    users.append(user)
 
-    if value > BASE_VALUE:
-        statement_string += f"\ndeposit: R$ {value}"
-        balance += value
+def print_statement(statement):
+    for state in statement:
+        print(state)
+
+def deposit(value, statement, account):
+    if value > 0:
+        statement.append(f"Deposito: R$ {value:.2f}")
+        account["balance"] += value
     else:
-        print("Invalid amount")
+        print("Valor inválido")
 
-def withdrawal(value):
-    global statement_string, balance, number_drawals,withdrawal_amount
+def validate_withdrawal(value, number_drawal, account):
+    LIMIT = 500.0
+    DRAWAL_LIMIT = 3
 
-    if value > BASE_VALUE and number_drawals < DAILY_LIMIT:
+    insufficient = value > account["balance"]
+    valid = value < 0
+    withdrawal_limit = value > LIMIT
+    limit_drawal = number_drawal >= DRAWAL_LIMIT
 
-        if (withdrawal_amount+value) < LIMIT_VALUE and value <= balance :
-            withdrawal_amount+=value
-            balance -= value
-            number_drawals += 1
-            statement_string += f"\nwithdrawal: R$ {value}"
+    if insufficient:
+        print("Saldo insuficiente")
+    if valid:
+        print("Valor inválido")
+    if withdrawal_limit:
+        print("Valor limite de saque")
+    if limit_drawal:
+        print("Superou o limite de saques diários")
+
+    return not (insufficient or valid or withdrawal_limit or limit_drawal)
+
+def withdrawal(value, statement, number_drawal, account):
+    if validate_withdrawal(value, number_drawal, account):
+        account["balance"] -= value
+        number_drawal += 1
+        statement.append(f"Saque: R$ {value:.2f}")
+
+def print_menu():
+    menu_str = """
+[a] Entrar
+[d] Depósito 
+[s] Saque 
+[e] Extrato 
+[q] Sair\n=> """
+    print(menu_str)
+
+def find_account(user, accounts):
+    for acc in accounts:
+        if user == acc["owner"]:
+            return acc
+
+def main():
+    users = []
+    accounts = []
+    number_drawal = 0
+    account = None
+
+    while True:
+        print_menu()
+        opcao = input()
+        if opcao == "a":
+            user = create_user()
+            if user not in users:
+                users.append(user)
+                create_account(user, accounts)
+            account = find_account(user, accounts)
+        elif opcao == "d" and account is not None:
+            value = float(input("Valor do depósito: "))
+            deposit(value, account["statement"], account)
+        elif opcao == "s" and account is not None:
+            value = float(input("Valor do saque: "))
+            withdrawal(value, account["statement"], number_drawal, account)
+        elif opcao == "e" and account is not None:
+            print_statement(account["statement"])
+        elif opcao == "q":
+            break
         else:
-            print("AMOUNT OF LIMIT")
+            print("Opção inválida")
 
-    else:
-        print("LIMIT OF DRAWALS DAILY")
-
-
-
-menu = """
-
-[d] Deposito
-[s] sacar
-[e] extrato
-[q] Sair
-
-=> """
-
-while True:
-    opcao = input(menu)
-
-    if opcao == "d":
-        value = float(input("Valor deposito: "))
-        deposit(value)
-    elif opcao == "s":
-        value = float(input("Valor Saque: "))
-        withdrawal(value)
-    elif opcao == "e":
-        statement()
-    elif opcao == "q":
-        break
-    else:
-        print("Invalid opcao")
+if __name__ == "__main__":
+    main()

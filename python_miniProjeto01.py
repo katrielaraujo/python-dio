@@ -52,7 +52,7 @@ def validate_withdrawal(value, number_drawal, account):
 
     return not (insufficient or valid or withdrawal_limit or limit_drawal)
 
-def withdrawal(value, statement, number_drawal, account):
+def withdrawal(value, statement, number_drawal, account,/):
     if validate_withdrawal(value, number_drawal, account):
         account["balance"] -= value
         number_drawal += 1
@@ -93,7 +93,7 @@ def main():
             deposit(value,statement, account)
         elif opcao == "s" and account is not None:
             value = float(input("Valor do saque: "))
-            withdrawal(value,statement, number_drawal, account)
+            withdrawal(value=value,statement=statement, number_drawal=number_drawal, account=account)
         elif opcao == "e" and account is not None:
             print_statement(statement)
         elif opcao == "q":

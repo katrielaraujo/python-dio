@@ -1,11 +1,18 @@
 import datetime
+import textwrap
 
 def create_user():
+    name = input("Nome: ")
+    birthday_str = input("Data de Nascimento (dd/mm/ano): ")
+    birthday = datetime.datetime.strptime(birthday_str, '%d/%m/%Y').date()
+    cpf = input("CPF: ")
+    address = input("Endereço: ")
+    
     user = {
-        "name": input("Nome: "),
-        "birthday": datetime.datetime.strptime(input("Data de Nascimento (dd-mm-yyyy): "), '%d-%m-%Y').date(),
-        "CPF": input("CPF: "),
-        "address": input("Endereco: ")
+        "name": name,
+        "birthday": birthday,
+        "CPF": cpf,
+        "address": address
     }
     return user
 
@@ -18,16 +25,16 @@ def create_account(user, accounts):
     }
     accounts.append(account)
 
-def add_user(user, users):
-    users.append(user)
-
-def print_statement(statement):
+def print_statement(statement,/,*,account):
+    print(f"EXTRATO BANCARIO: AGENCIA:{account['agency']} CONTA:{account['number_account']}")
+    print("RESPONSAVEL DA CONTA: "+account['owner']['name'])
     for state in statement:
-        print(state.replace('.',','))
+        print(state.replace('.', ','))
+    print(f"SALDO ATUAL: R$ {account['balance']}".replace('.', ','))
 
-def deposit(value, statement, account):
+def deposit(value, statement, account,/):
     if value > 0:
-        statement.append(f"Deposito: R$ {value:.2f}")
+        statement.append(f"Depósito: R$ {value:.2f}")
         account["balance"] += value
     else:
         print("Valor inválido")
@@ -35,24 +42,25 @@ def deposit(value, statement, account):
 def validate_withdrawal(value, number_drawal, account):
     LIMIT = 500.0
     DRAWAL_LIMIT = 3
+    BASE_LIMIT = 0
 
-    insufficient = value < account["balance"]
-    valid = value > 0
+    insufficient = value <= account["balance"]
+    valid = value > BASE_LIMIT
     withdrawal_limit = value <= LIMIT
     limit_drawal = number_drawal <= DRAWAL_LIMIT
 
-    if insufficient:
+    if not insufficient:
         print("Saldo insuficiente")
-    if valid:
+    if not valid:
         print("Valor inválido")
-    if withdrawal_limit:
+    if not withdrawal_limit:
         print("Valor limite de saque")
-    if limit_drawal:
+    if not limit_drawal:
         print("Superou o limite de saques diários")
 
-    return not (insufficient or valid or withdrawal_limit or limit_drawal)
+    return insufficient and valid and withdrawal_limit and limit_drawal
 
-def withdrawal(value, statement, number_drawal, account,/):
+def withdrawal(*,value, statement, number_drawal, account):
     if validate_withdrawal(value, number_drawal, account):
         account["balance"] -= value
         number_drawal += 1
@@ -65,7 +73,7 @@ def print_menu():
 [s] Saque 
 [e] Extrato 
 [q] Sair\n=> """
-    print(menu_str)
+    print(textwrap.dedent(menu_str))
 
 def find_account(user, accounts):
     for acc in accounts:
@@ -90,16 +98,15 @@ def main():
             account = find_account(user, accounts)
         elif opcao == "d" and account is not None:
             value = float(input("Valor do depósito: "))
-            deposit(value,statement, account)
+            deposit(value, statement, account)
         elif opcao == "s" and account is not None:
             value = float(input("Valor do saque: "))
-            withdrawal(value=value,statement=statement, number_drawal=number_drawal, account=account)
+            withdrawal(value=value, statement=statement, number_drawal=number_drawal, account=account)
         elif opcao == "e" and account is not None:
-            print_statement(statement)
+            print_statement(statement,account=account)
         elif opcao == "q":
             break
         else:
             print("Opção inválida")
 
-if __name__ == "__main__":
-    main()
+main()

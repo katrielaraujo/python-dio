@@ -2,7 +2,7 @@ class Cliente:
 
     def __init__(self,endereco):
         self._endereco = endereco
-        self.conta = []
+        self.contas = []
 
     def realizar_transacao(self,conta,transacao):
         transacao.registrar(conta)
